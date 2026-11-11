@@ -19,8 +19,27 @@ public class VRBodyFollow : MonoBehaviour
 
     private Transform headBone;
     private Vector3 neutralEyePosition;
-    private Vector3 originalHeadScale;
+    [System.Serializable]
+    private class BodyMesh
+    {
+        public SkinnedMeshRenderer renderer;
+        public Mesh originalMesh;
+        public Mesh firstPersonMesh;
+    }
+
+    [SerializeField] private BodyMesh[] bodyMeshes = new BodyMesh[0];
     private bool calibrated;
+    private Quaternion facingCorrection = Quaternion.identity;
+    private AnimatorCullingMode previousCullingMode;
+
+    private void OnEnable()
+    {
+        if (animator != null)
+        {
+            previousCullingMode = animator.cullingMode;
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        }
+    }
 
     private void LateUpdate()
     {
@@ -40,28 +59,46 @@ public class VRBodyFollow : MonoBehaviour
                 eyePosition = (leftEye.position + rightEye.position) * 0.5f;
 
             neutralEyePosition = transform.InverseTransformPoint(eyePosition);
-            originalHeadScale = headBone.localScale;
+
+            // 待機アニメーションの顔の向きを、視線の正面に合わせる。
+            Vector3 neutralForward = Vector3.ProjectOnPlane(
+                transform.InverseTransformDirection(headBone.forward), Vector3.up);
+            if (neutralForward.sqrMagnitude > 0.001f)
+                facingCorrection = Quaternion.Inverse(
+                    Quaternion.LookRotation(neutralForward.normalized, Vector3.up));
             calibrated = true;
         }
 
         Vector3 forward = Vector3.ProjectOnPlane(vrCamera.forward, Vector3.up);
+        Quaternion viewRotation = transform.rotation * Quaternion.Inverse(facingCorrection);
+        if (forward.sqrMagnitude > 0.001f)
+            viewRotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
         if (followRotation && forward.sqrMagnitude > 0.001f)
-            transform.rotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
+            transform.rotation = viewRotation * facingCorrection;
 
         if (followPosition)
         {
             // アニメーション中の頭の揺れでモデル全体を補正しない。
             Vector3 eyeOffset = transform.TransformVector(neutralEyePosition);
-            transform.position = vrCamera.position - eyeOffset + transform.rotation * bodyOffset;
+            transform.position = vrCamera.position - eyeOffset + viewRotation * bodyOffset;
         }
 
-        headBone.localScale = hideHead ? Vector3.zero : originalHeadScale;
+        foreach (var bodyMesh in bodyMeshes)
+        {
+            if (bodyMesh.renderer != null)
+                bodyMesh.renderer.sharedMesh = hideHead ? bodyMesh.firstPersonMesh : bodyMesh.originalMesh;
+        }
     }
 
     private void OnDisable()
     {
-        if (headBone != null && calibrated)
-            headBone.localScale = originalHeadScale;
+        foreach (var bodyMesh in bodyMeshes)
+        {
+            if (bodyMesh.renderer != null)
+                bodyMesh.renderer.sharedMesh = bodyMesh.originalMesh;
+        }
+        if (animator != null)
+            animator.cullingMode = previousCullingMode;
         calibrated = false;
     }
 }
