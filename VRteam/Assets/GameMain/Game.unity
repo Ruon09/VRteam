@@ -192,6 +192,16 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1989423393}
   m_SourcePrefab: {fileID: 100100000, guid: ad642450a89760a4c89bb7e7772fe861, type: 3}
+--- !u!137 &979703234 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6148737315974723067, guid: ad642450a89760a4c89bb7e7772fe861, type: 3}
+  m_PrefabInstance: {fileID: 979703233}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &979703235 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3853268898807207900, guid: ad642450a89760a4c89bb7e7772fe861, type: 3}
+  m_PrefabInstance: {fileID: 979703233}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1541295534
 GameObject:
   m_ObjectHideFlags: 0
@@ -422,9 +432,6 @@ MonoBehaviour:
   directionTolerance: 30
   cooldown: 0.5
   playerAnimator: {fileID: 1989423392}
-  skillPrefab: {fileID: 5014087386207696746, guid: 759e38e6032e74d46a92a16c5fcb2ab9, type: 3}
-  spawnDistance: 0.3
-  skillSpeed: 8
   readyColor: {r: 0.1, g: 0.65, b: 1, a: 1}
   successColor: {r: 0, g: 1, b: 0, a: 1}
   failureColor: {r: 1, g: 0.2, b: 0.15, a: 1}
@@ -725,8 +732,15 @@ MonoBehaviour:
   animator: {fileID: 1989423392}
   followPosition: 1
   followRotation: 1
-  bodyOffset: {x: 0, y: -0.05, z: 0.15}
+  bodyOffset: {x: 0, y: -0.05, z: -0.15}
   hideHead: 1
+  bodyMeshes:
+  - renderer: {fileID: 979703235}
+    originalMesh: {fileID: 2497106002754787046, guid: ad642450a89760a4c89bb7e7772fe861, type: 3}
+    firstPersonMesh: {fileID: 4300000, guid: 8dcfce6f348b8384b99d0884742953b8, type: 2}
+  - renderer: {fileID: 979703234}
+    originalMesh: {fileID: 6796121518194019630, guid: ad642450a89760a4c89bb7e7772fe861, type: 3}
+    firstPersonMesh: {fileID: 4300000, guid: 6190658c8002b4b448efa719e5a09fed, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

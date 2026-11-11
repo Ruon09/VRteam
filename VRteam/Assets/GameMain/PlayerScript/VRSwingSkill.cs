@@ -18,11 +18,6 @@ public class VRSwingSkill : MonoBehaviour
     [SerializeField] private Animator playerAnimator;
     private static readonly int AttackTrigger = Animator.StringToHash("Attack");
 
-    [Header("技の設定")]
-    [SerializeField] private GameObject skillPrefab;
-    [SerializeField] private float spawnDistance = 0.3f;
-    [SerializeField] private float skillSpeed = 8f;
-
     [Header("操作フィードバック")]
     [SerializeField] private Color readyColor = new Color(0.1f, 0.65f, 1f);
     [SerializeField] private Color successColor = Color.green;
@@ -148,12 +143,6 @@ public class VRSwingSkill : MonoBehaviour
 
     private void ActivateSkill()
     {
-        if (skillPrefab == null)
-        {
-            ShowFeedback(failureColor);
-            return;
-        }
-
         if (playerAnimator != null)
         {
             playerAnimator.ResetTrigger(AttackTrigger);
@@ -165,13 +154,5 @@ public class VRSwingSkill : MonoBehaviour
         if (device.TryGetHapticCapabilities(out var capabilities) && capabilities.supportsImpulse)
             device.SendHapticImpulse(0, hapticAmplitude, hapticDuration);
 
-        Vector3 direction = transform.forward;
-        GameObject skill = Instantiate(
-            skillPrefab, transform.position + direction * spawnDistance, transform.rotation);
-
-        if (skill.TryGetComponent(out Rigidbody body))
-            body.AddForce(direction * skillSpeed, ForceMode.VelocityChange);
-
-        Destroy(skill, 3f);
     }
 }
