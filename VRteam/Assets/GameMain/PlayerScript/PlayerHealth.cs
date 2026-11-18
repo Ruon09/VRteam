@@ -3,7 +3,7 @@ using UnityEngine.XR;
 
 public class PlayerHealth : MonoBehaviour, IDamageable
 {
-    [SerializeField, Min(1)] private int maxHealth = 100;
+    [SerializeField, Min(1)] private int maxHealth = 3;
     [SerializeField, Min(0f)] private float invulnerabilitySeconds = 1f;
     [SerializeField] private Transform head;
     [SerializeField] private VRSwingSkill skill;
@@ -13,6 +13,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     [SerializeField] private TextMesh healthLabel;
     [SerializeField] private Transform healthFill;
 
+    public event System.Action Defeated;
     public int CurrentHealth { get; private set; }
     public bool IsAlive => CurrentHealth > 0;
     public Transform Head => head;
@@ -44,9 +45,9 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     public bool TryTakeDamage(int damage)
     {
-        if (!IsAlive || damage <= 0 || Time.time < invulnerableUntil)
+        if (!isActiveAndEnabled || !IsAlive || damage <= 0 || Time.time < invulnerableUntil)
             return false;
-        CurrentHealth = Mathf.Max(0, CurrentHealth - damage);
+        CurrentHealth = Mathf.Max(0, CurrentHealth - 1);
         invulnerableUntil = Time.time + invulnerabilitySeconds;
         feedbackUntil = Time.time + 0.25f;
         var device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
@@ -63,6 +64,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
                 animator.Play("Idle", 0, 0f);
             }
             device.TryGetFeatureValue(CommonUsages.secondaryButton, out retryWasPressed);
+            Defeated?.Invoke();
         }
         RefreshDisplay();
         return true;
@@ -72,7 +74,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     {
         var device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
         device.TryGetFeatureValue(CommonUsages.secondaryButton, out bool pressed);
-        if (!IsAlive && pressed && !retryWasPressed)
+        // BattleFlow owns the result/replay flow when installed.
+        if (GetComponent<BattleFlow>()==null && !IsAlive && pressed && !retryWasPressed)
             Retry();
         retryWasPressed = pressed;
         RefreshDisplay();
@@ -81,7 +84,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     [ContextMenu("Retry")]
     public void Retry()
     {
-        if (IsAlive)
+        if (IsAlive || GetComponent<BattleFlow>()!=null)
             return;
         transform.SetPositionAndRotation(spawnPosition, spawnRotation);
         if (head != null)
@@ -109,8 +112,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     {
         if (healthLabel != null)
         {
-            healthLabel.text = IsAlive ? "HP " + CurrentHealth + " / " + maxHealth
-                : "DOWN\nRight B / Secondary: Retry";
+            healthLabel.text = IsAlive ? "LIFE " + CurrentHealth + " / " + maxHealth
+                : "DEFEAT";
             healthLabel.color = !IsAlive || Time.time < feedbackUntil ? Color.red : Color.white;
         }
         if (healthFill != null)
