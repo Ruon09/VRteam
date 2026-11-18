@@ -7,6 +7,8 @@ public class PracticeTarget : MonoBehaviour, IDamageable
     [SerializeField] private Renderer targetRenderer;
     [SerializeField] private TextMesh healthLabel;
 
+    [SerializeField] private bool autoReset = true;
+    public event System.Action Defeated;
     public int CurrentHealth { get; private set; }
     private float hitUntil;
     private float resetAt;
@@ -26,19 +28,22 @@ public class PracticeTarget : MonoBehaviour, IDamageable
 
     public bool TryTakeDamage(int damage)
     {
-        if (damage <= 0 || CurrentHealth == 0)
+        if (!isActiveAndEnabled || damage <= 0 || CurrentHealth == 0)
             return false;
         CurrentHealth = Mathf.Max(0, CurrentHealth - damage);
         hitUntil = Time.time + 0.15f;
         if (CurrentHealth == 0)
+        {
             resetAt = Time.time + resetDelay;
+            Defeated?.Invoke();
+        }
         RefreshDisplay();
         return true;
     }
 
     private void Update()
     {
-        if (CurrentHealth == 0 && Time.time >= resetAt)
+        if (autoReset && CurrentHealth == 0 && Time.time >= resetAt)
             CurrentHealth = maxHealth;
         RefreshDisplay();
         if (viewer != null && healthLabel != null)
