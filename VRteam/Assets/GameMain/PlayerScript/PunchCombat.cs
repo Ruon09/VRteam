@@ -13,6 +13,17 @@ public class PunchCombat : MonoBehaviour
     [SerializeField, Min(1)] private int crossDamage = 20;
     [SerializeField] private LayerMask targetLayers = ~0;
 
+    [SerializeField, Range(.1f,1f)] private float normalDamageMultiplier = .5f;
+    public event System.Action AttackFinished;
+    private bool skillAttack;
+    private Vector3 gestureDirection;
+    public void PrepareAttack(bool isSkill,Vector3 direction){skillAttack=isSkill;gestureDirection=direction.normalized;}
+    public void EndAttack()
+    {
+        if(leftFist!=null)leftFist.enabled=false;
+        if(rightFist!=null)rightFist.enabled=false;
+        AttackFinished?.Invoke();
+    }
     private readonly HashSet<IDamageable> jabHits = new HashSet<IDamageable>();
     private readonly HashSet<IDamageable> crossHits = new HashSet<IDamageable>();
     private Vector3 previousLeft;
@@ -74,7 +85,12 @@ public class PunchCombat : MonoBehaviour
             return;
         var target = collider.GetComponentInParent<IDamageable>();
         if (target != null && target != GetComponentInParent<IDamageable>() && hits.Add(target))
-            target.TryTakeDamage(damage);
+        {
+            float multiplier=skillAttack?1f:normalDamageMultiplier;
+            var weak=collider.GetComponentInParent<WeakPointTarget>();
+            float bonus=skillAttack && weak!=null?weak.Multiplier(gestureDirection,Camera.main):1f;
+            if(target.TryTakeDamage(Mathf.Max(1,Mathf.RoundToInt(damage*multiplier*bonus))) && bonus>1f)weak.ShowHit(bonus);
+        }
     }
 
     private void OnDisable()
@@ -82,5 +98,6 @@ public class PunchCombat : MonoBehaviour
         if (leftFist != null) leftFist.enabled = false;
         if (rightFist != null) rightFist.enabled = false;
         BeginAttack();
+        EndAttack();
     }
 }
