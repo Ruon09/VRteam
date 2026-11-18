@@ -107,3 +107,14 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Generated files for the nested Unity project
+/VRteam/[Ll]ibrary/
+/VRteam/[Tt]emp/
+/VRteam/[Oo]bj/
+/VRteam/[Ll]ogs/
+/VRteam/[Uu]ser[Ss]ettings/
+/VRteam/[Bb]uild/
+/VRteam/[Bb]uilds/
+/VRteam/[Mm]emoryCaptures/
+/VRteam/[Rr]ecordings/
