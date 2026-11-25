@@ -13,15 +13,14 @@ public class VRSwingSkill : MonoBehaviour
     [SerializeField] private PunchCombat combat;
     [SerializeField] private PlayerActionLock actionLock;
     [SerializeField] private LineRenderer[] attackGuides = new LineRenderer[0];
-    [SerializeField, Min(.01f)] private float swingThreshold = 2f;
-    [SerializeField, Min(.01f)] private float swingWindow = .18f;
-    [SerializeField, Min(.01f)] private float minimumSwingDistance = .18f;
-    [SerializeField, Range(0,90)] private float directionTolerance = 40f;
+    [SerializeField, Min(.01f)] private float swingThreshold = .9f;
+    [SerializeField, Min(.01f)] private float swingWindow = .35f;
+    [SerializeField, Min(.01f)] private float minimumSwingDistance = .09f;
+    [SerializeField, Range(0,90)] private float directionTolerance = 55f;
     [SerializeField] private float[] skillCooldownSeconds = {3f,3f,3f,3f};
     private readonly float[] readyAt = new float[4];
-    private readonly Vector3[] previous = new Vector3[2], start = new Vector3[2], forward = new Vector3[2], up = new Vector3[2];
-    private readonly float[] started = new float[2];
-    private readonly bool[] measuring = new bool[2], fast = new bool[2], skillGesture = new bool[2];
+    [SerializeField, Range(0f,1f)] private float triggerThreshold = .2f;
+    private readonly SwingGestureRecognizer[] gestures = {new SwingGestureRecognizer(),new SwingGestureRecognizer()};
     private float feedbackUntil;
     private int feedbackIndex = -1;
     private Color feedbackColor;
@@ -34,7 +33,7 @@ public class VRSwingSkill : MonoBehaviour
     private void OnEnable()
     {
         properties = new MaterialPropertyBlock();
-        for(int i=0;i<2;i++){var hand=Hand(i);if(hand!=null)previous[i]=hand.localPosition;measuring[i]=fast[i]=false;}
+        for(int i=0;i<2;i++){var hand=Hand(i);if(hand!=null)gestures[i].Reset(hand.localPosition);}
         if(combat!=null)combat.AttackFinished+=FinishAttack;
         feedbackIndex=-1;
     }
@@ -70,29 +69,23 @@ public class VRSwingSkill : MonoBehaviour
         for(int i=0;i<2;i++)
         {
             var hand=Hand(i);if(hand==null)continue;
-            Vector3 position=hand.localPosition,delta=position-previous[i];
-            bool moving=delta.magnitude/Time.deltaTime>=swingThreshold,rising=moving&&!fast[i];
-            Vector3 last=previous[i];previous[i]=position;fast[i]=moving;
             var device=InputDevices.GetDeviceAtXRNode(i==0?XRNode.LeftHand:XRNode.RightHand);
             device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton,out bool pressed);
+            if(device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.trigger,out float pressure))pressed|=pressure>=triggerThreshold;
             if(i==1 && skillButton?.action?.IsPressed()==true)pressed=true;
-            if(busy){measuring[i]=false;continue;}
-            if(!measuring[i] && rising)
+            var f=Vector3.ProjectOnPlane(head.forward,Vector3.up).normalized;
+            if(f.sqrMagnitude<.01f)f=Vector3.ProjectOnPlane(head.up,Vector3.up).normalized;
+            var forward=hand.parent!=null?hand.parent.InverseTransformDirection(f):f;
+            var up=hand.parent!=null?hand.parent.InverseTransformDirection(Vector3.up):Vector3.up;
+            if(gestures[i].Sample(hand.localPosition,Time.time,Time.deltaTime,pressed,!busy,
+                forward,up,i==0,swingThreshold,minimumSwingDistance,swingWindow,directionTolerance,
+                out var kind,out bool useSkill,out var motion))
             {
-                measuring[i]=true;start[i]=last;started[i]=Time.time;skillGesture[i]=pressed;
-                var f=Vector3.ProjectOnPlane(head.forward,Vector3.up).normalized;
-                if(f.sqrMagnitude<.01f)f=Vector3.ProjectOnPlane(head.up,Vector3.up).normalized;
-                forward[i]=hand.parent!=null?hand.parent.InverseTransformDirection(f):f;
-                up[i]=hand.parent!=null?hand.parent.InverseTransformDirection(Vector3.up):Vector3.up;
+                var worldMotion=hand.parent!=null?hand.parent.TransformDirection(motion):motion;
+                if(TryAttack(kind,useSkill,worldMotion))busy=true;
+                else Feedback((int)kind,Color.red);
             }
-            if(!measuring[i])continue;
-            skillGesture[i]|=pressed;
-            if(Time.time-started[i]>swingWindow){measuring[i]=false;continue;}
-            var motion=position-start[i];if(motion.magnitude<minimumSwingDistance)continue;
-            measuring[i]=false;
-            var worldMotion=hand.parent!=null?hand.parent.TransformDirection(motion):motion;
-            if(Classify(motion,forward[i],up[i],i==0,directionTolerance,out var kind) && TryAttack(kind,skillGesture[i],worldMotion))busy=true;
-            else Feedback((int)kind,Color.red);
+            else if(gestures[i].Rejected)Feedback((int)kind,Color.red);
         }
         for(int i=0;i<attackGuides.Length;i++)
         {
