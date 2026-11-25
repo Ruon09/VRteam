@@ -16,7 +16,7 @@ public class VRSwingSkill : MonoBehaviour
     [SerializeField, Min(.01f)] private float swingThreshold = .9f;
     [SerializeField, Min(.01f)] private float swingWindow = .35f;
     [SerializeField, Min(.01f)] private float minimumSwingDistance = .09f;
-    [SerializeField, Range(0,90)] private float directionTolerance = 55f;
+    [SerializeField, Range(0,90)] private float directionTolerance = 35f;
     [SerializeField] private float[] skillCooldownSeconds = {3f,3f,3f,3f};
     private readonly float[] readyAt = new float[4];
     [SerializeField, Range(0f,1f)] private float triggerThreshold = .2f;
@@ -101,3 +101,4 @@ public class VRSwingSkill : MonoBehaviour
         if(attackGuides!=null)foreach(var line in attackGuides)if(line!=null)line.SetPropertyBlock(null);
     }
 }
+

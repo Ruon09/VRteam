@@ -17,6 +17,10 @@ public class PunchCombat : MonoBehaviour
     [Header("Straight punch reach assistance (world metres)")]
     [SerializeField, Min(0f)] private float straightReach = .25f;
     [SerializeField, Min(.01f)] private float straightRadius = .12f;
+    [Header("Hit visual")]
+    [SerializeField] private HitImpactEffect hitEffectPrefab;
+    [SerializeField, Min(.1f)] private float hitEffectScale = 1f;
+    private Vector3 hitOrigin;
     private bool straightAttack;
     public event System.Action AttackFinished;
     private bool skillAttack;
@@ -65,6 +69,7 @@ public class PunchCombat : MonoBehaviour
         HashSet<IDamageable> hits, ref Vector3 previous, ref bool wasActive)
     {
         Vector3 position = fist.transform.TransformPoint(fist.center);
+        hitOrigin=position;
         fist.enabled = active;
         if (active)
         {
@@ -110,8 +115,26 @@ public class PunchCombat : MonoBehaviour
             float multiplier=skillAttack?1f:normalDamageMultiplier;
             var weak=collider.GetComponentInParent<WeakPointTarget>();
             float bonus=skillAttack && weak!=null?weak.Multiplier(gestureDirection,Camera.main):1f;
-            if(target.TryTakeDamage(Mathf.Max(1,Mathf.RoundToInt(damage*multiplier*bonus))) && bonus>1f)weak.ShowHit(bonus);
+            if(target.TryTakeDamage(Mathf.Max(1,Mathf.RoundToInt(damage*multiplier*bonus))))
+            {
+                if(bonus>1f)weak.ShowHit(bonus);
+                SpawnImpact(collider);
+            }
         }
+    }
+
+    private void SpawnImpact(Collider collider)
+    {
+        if(hitEffectPrefab==null)return;
+        var camera=Camera.main;
+        Vector3 point=collider.ClosestPoint(hitOrigin);
+        Vector3 origin=camera!=null?camera.transform.position:hitOrigin;
+        Vector3 direction=point-origin;
+        if(direction.sqrMagnitude<.000001f)direction=collider.bounds.center-origin;
+        if(direction.sqrMagnitude>.000001f && collider.Raycast(new Ray(origin,direction.normalized),out var surface,direction.magnitude+collider.bounds.size.magnitude))point=surface.point;
+        Vector3 towardsViewer=(origin-point).normalized;
+        var effect=Instantiate(hitEffectPrefab,point+towardsViewer*.015f,Quaternion.identity);
+        effect.Initialize(camera,hitEffectScale*(skillAttack?1.15f:1f));
     }
 
     private void OnDisable()
