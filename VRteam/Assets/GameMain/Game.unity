@@ -3206,15 +3206,16 @@ MonoBehaviour:
   - {fileID: 1996459985}
   - {fileID: 1227285561}
   - {fileID: 416669356}
-  swingThreshold: 2
-  swingWindow: 0.18
-  minimumSwingDistance: 0.18
-  directionTolerance: 40
+  swingThreshold: 0.9
+  swingWindow: 0.35
+  minimumSwingDistance: 0.09
+  directionTolerance: 55
   skillCooldownSeconds:
   - 3
   - 3
   - 3
   - 3
+  triggerThreshold: 0.2
 --- !u!1 &1793585466 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2218496723442559054, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}
@@ -3803,6 +3804,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   normalDamageMultiplier: 0.5
+  straightReach: 0.25
+  straightRadius: 0.12
 --- !u!1 &1996459983
 GameObject:
   m_ObjectHideFlags: 0
