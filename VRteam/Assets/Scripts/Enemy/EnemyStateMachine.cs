@@ -26,7 +26,7 @@ public sealed class EnemyDamageEvent : UnityEvent<float> { }
 /// Unity 6対応・物理検索とMaterial生成を最適化。
 /// </summary>
 [RequireComponent(typeof(BoxCollider))]
-public sealed class EnemyStateMachine : MonoBehaviour
+public sealed class EnemyStateMachine : MonoBehaviour, IDamageable
 {
     [Header("パラメーター")]
     [SerializeField, Min(1f)] private float maxHP = 100f;
@@ -102,6 +102,17 @@ public sealed class EnemyStateMachine : MonoBehaviour
     public float MaxHP => maxHP;
     public float RemainingStunTime => Mathf.Max(0f, stunEndTime - Time.time);
     public EnemyAttackType CurrentAttackType => currentAttackType;
+
+    public event System.Action Defeated;
+
+    public bool TryTakeDamage(int damage)
+    {
+        if (!isActiveAndEnabled || defeated || damage <= 0 || currentHP <= 0f)
+            return false;
+
+        TakeDamage(damage);
+        return true;
+    }
 
     // --------------------------------------------------
     // 初期化
@@ -820,6 +831,7 @@ public sealed class EnemyStateMachine : MonoBehaviour
         {
             defeated = true;
 
+            Defeated?.Invoke();
             gameObject.SetActive(false);
         }
     }

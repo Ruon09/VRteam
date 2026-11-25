@@ -6,14 +6,32 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Product/TitleScene.unity
+    guid: cf0048c6fe420ce4c841432db3258815
+  - enabled: 0
+    path: Assets/Scenes/Yamaguchi/Test_Title.unity
+    guid: 6a9a8b8f1440eab4290f0b5805ae6455
+  - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 55daccc09a3b69647bbab145b54a3ab3
-  - enabled: 1
+  - enabled: 0
     path: Assets/GameMain/Game.unity
     guid: e4d610378cf318448afbcc3e2e567717
   - enabled: 1
+    path: Assets/Product/Battle.unity
+    guid: 468ada3c5bbe414fa4b2b4ec4adfc3f4
+  - enabled: 1
+    path: Assets/Product/BattleResult.unity
+    guid: 8841361a297d42b99481bbe2e46a9954
+  - enabled: 1
     path: Assets/GameMain/BattleResult.unity
     guid: 4014b17b95abff1419257b79d60223dc
+  - enabled: 1
+    path: Assets/Product/ResultScene.unity
+    guid: 75834bf62b580324b811010d17e19d92
+  - enabled: 0
+    path: Assets/Scenes/Yamaguchi/Test_Result.unity
+    guid: 2cf90ae6dba78b2408ad0bdf8c0a4fa7
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: bfa1182bd221b4ca89619141f66f1260, type: 2}
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: dc5a169419fa04987b057f65238cf3ba, type: 2}
