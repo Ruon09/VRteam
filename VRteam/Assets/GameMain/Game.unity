@@ -3209,7 +3209,7 @@ MonoBehaviour:
   swingThreshold: 0.9
   swingWindow: 0.35
   minimumSwingDistance: 0.09
-  directionTolerance: 55
+  directionTolerance: 35
   skillCooldownSeconds:
   - 3
   - 3
@@ -3806,6 +3806,8 @@ MonoBehaviour:
   normalDamageMultiplier: 0.5
   straightReach: 0.25
   straightRadius: 0.12
+  hitEffectPrefab: {fileID: 891854855620908978, guid: a7116fe11b0cae34a9d5cfe9c8bf548d, type: 3}
+  hitEffectScale: 1
 --- !u!1 &1996459983
 GameObject:
   m_ObjectHideFlags: 0
