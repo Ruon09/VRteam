@@ -3804,8 +3804,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   normalDamageMultiplier: 0.5
-  straightReach: 0.25
-  straightRadius: 0.12
+  straightReach: 0.55
+  straightRadius: 0.18
   hitEffectPrefab: {fileID: 891854855620908978, guid: a7116fe11b0cae34a9d5cfe9c8bf548d, type: 3}
   hitEffectScale: 1
 --- !u!1 &1996459983
